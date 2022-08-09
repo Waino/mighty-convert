@@ -1,14 +1,12 @@
 # See LICENSE.md and ThirdPartyNotices.md for licensing information
 
-import os
 import gc
 import sys
 from pathlib import Path
-from typing import Iterable, List, Tuple, Union
-from packaging.version import Version, parse
 from optimum.onnxruntime import ORTConfig, ORTOptimizer, ORTQuantizer
 
 # Local packages
+from core import get_output_dir
 import download
 import validate
 
@@ -24,13 +22,11 @@ feature_map = {
     # "multiple-choice":"multiple-choice",
 }
 
-repository_dir = str(os.path.abspath(os.path.join(__file__, "..", "output")))
-
 
 def optimization(model_name, feature):
     ort_config = ORTConfig()
     ort_config.only_onnxruntime = False
-    output_dir = Path(str(os.path.abspath(os.path.join(repository_dir, model_name))))
+    output_dir = get_output_dir(model_name)
     optim_model_path = output_dir.joinpath("model-optimized.onnx")
     optimizer = ORTOptimizer(ort_config)
     optimizer.fit(model_name, Path(output_dir), feature=feature)
@@ -52,7 +48,7 @@ def dynamic_quantization(model_name, feature):
     ort_config.only_onnxruntime = False
     ort_config.quantization_approach = "dynamic"
     ort_config.optimize_model = True
-    output_dir = Path(str(os.path.abspath(os.path.join(repository_dir, model_name))))
+    output_dir = get_output_dir(model_name)
     q8_model_path = output_dir.joinpath("model-quantized.onnx")
     quantizer = ORTQuantizer(ort_config)
     quantizer.fit(model_name, Path(output_dir), feature=feature)
